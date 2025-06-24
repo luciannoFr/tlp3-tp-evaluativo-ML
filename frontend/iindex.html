@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Calidad del Vino</title>
+    <style>
+      :root {
+        --primary-burgundy: #800020;
+        --secondary-gold: #d4af37;
+        --accent-purple: #4a154b;
+        --wine-red: #c41e3a;
+        --soft-cream: #fdf6e3;
+        --dark-charcoal: #1c1c1c;
+        --light-gray: #f8f9fa;
+        --medium-gray: #6c757d;
+        --success-green: #28a745;
+        --warning-orange: #fd7e14;
+
+        /* Glass morphism colors */
+        --glass-bg: rgba(255, 255, 255, 0.25);
+        --glass-border: rgba(255, 255, 255, 0.18);
+        --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+
+        /* Dark mode */
+        --dark-glass-bg: rgba(255, 255, 255, 0.1);
+        --dark-glass-border: rgba(255, 255, 255, 0.1);
+        --dark-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--soft-cream) 0%,
+          #e8dcc6 50%,
+          var(--light-gray) 100%
+        );
+        color: var(--dark-charcoal);
+        transition: all 0.4s ease;
+        min-height: 100vh;
+        position: relative;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: radial-gradient(
+            circle at 20% 80%,
+            rgba(212, 175, 55, 0.1) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 20%,
+            rgba(128, 0, 32, 0.1) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 40% 40%,
+            rgba(196, 30, 58, 0.05) 0%,
+            transparent 50%
+          );
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      body.dark {
+        background: linear-gradient(
+          135deg,
+          var(--dark-charcoal) 0%,
+          #2c1810 50%,
+          #1a1a1a 100%
+        );
+        color: var(--soft-cream);
+      }
+
+      @keyframes slideInFromTop {
+        from {
+          opacity: 0;
+          transform: translateY(-50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes slideInFromLeft {
+        from {
+          opacity: 0;
+          transform: translateX(-50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes slideInFromRight {
+        from {
+          opacity: 0;
+          transform: translateX(50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes fadeInScale {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      .header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-burgundy) 0%,
+          var(--wine-red) 50%,
+          var(--accent-purple) 100%
+        );
+        padding: 3rem 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        animation: slideInFromTop 1s ease-out;
+      }
+
+      .header::before {
+        content: "🍇";
+        position: absolute;
+        font-size: 12rem;
+        opacity: 0.1;
+        top: -3rem;
+        left: -3rem;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      .header::after {
+        content: "🍷";
+        position: absolute;
+        font-size: 8rem;
+        opacity: 0.1;
+        bottom: -2rem;
+        right: -2rem;
+        animation: float 6s ease-in-out infinite 3s;
+      }
+
+      .header h1 {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: white;
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 2;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        transition: all 0.3s ease;
+        margin-bottom: 2rem;
+      }
+
+      body.dark .glass-card {
+        background: var(--dark-glass-bg);
+        border: 1px solid var(--dark-glass-border);
+        box-shadow: var(--dark-shadow);
+      }
+
+      .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+      }
+
+      .intro-section {
+        padding: 2.5rem;
+        animation: fadeInScale 1s ease-out 0.3s both;
+      }
+
+      .intro-section h2 {
+        font-size: 2.2rem;
+        color: var(--primary-burgundy);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-align: center;
+      }
+
+      body.dark .intro-section h2 {
+        color: var(--secondary-gold);
+      }
+
+      .intro-section p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--medium-gray);
+        text-align: center;
+      }
+
+      body.dark .intro-section p {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .charts-section {
+        animation: slideInFromLeft 1s ease-out 0.6s both;
+        margin-bottom: 3rem;
+      }
+
+      .section-title {
+        text-align: center;
+        font-size: 2.5rem;
+        color: var(--primary-burgundy);
+        margin-bottom: 3rem;
+        position: relative;
+      }
+
+      body.dark .section-title {
+        color: var(--secondary-gold);
+      }
+
+      .section-title::after {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 4px;
+        background: linear-gradient(
+          90deg,
+          var(--primary-burgundy),
+          var(--secondary-gold)
+        );
+        border-radius: 2px;
+      }
+
+      .chart-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-radius: 25px;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        margin-bottom: 3rem;
+        overflow: hidden;
+        transition: all 0.4s ease;
+      }
+
+      body.dark .chart-card {
+        background: var(--dark-glass-bg);
+        border-color: var(--dark-glass-border);
+      }
+
+      .chart-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 60px 0 rgba(31, 38, 135, 0.6);
+      }
+
+      .chart-content {
+        display: flex;
+        flex-direction: column; /* Cambiado a columna para apilar verticalmente */
+        min-height: 500px;
+        gap: 0;
+      }
+
+      .chart-info {
+        padding: 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.1) 0%,
+          rgba(255, 255, 255, 0.05) 100%
+        );
+      }
+
+      body.dark .chart-info {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 0, 0, 0.2) 0%,
+          rgba(0, 0, 0, 0.1) 100%
+        );
+      }
+
+      .chart-info h3 {
+        font-size: 1.8rem;
+        color: var(--primary-burgundy);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-align: center;
+      }
+
+      body.dark .chart-info h3 {
+        color: var(--secondary-gold);
+      }
+
+      .chart-info p {
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: var(--medium-gray);
+        margin-bottom: 1.5rem;
+        text-align: center;
+      }
+
+      body.dark .chart-info p {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .accuracy-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--success-green), #20c997);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-weight: bold;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        text-align: center;
+      }
+
+      .insight-box {
+        background: linear-gradient(
+          135deg,
+          rgba(212, 175, 55, 0.1),
+          rgba(212, 175, 55, 0.05)
+        );
+        border-left: 4px solid var(--secondary-gold);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-top: 1.5rem;
+        text-align: center;
+      }
+
+      .insight-box strong {
+        color: var(--primary-burgundy);
+      }
+
+      body.dark .insight-box strong {
+        color: var(--secondary-gold);
+      }
+
+      .chart-image {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        position: relative;
+        overflow: hidden;
+        min-height: 500px; /* Aumentado para que las imágenes sean más grandes */
+      }
+
+      body.dark .chart-image {
+        background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+      }
+
+      .chart-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+      }
+
+      .chart-image:hover img {
+        transform: scale(1.05);
+      }
+
+      .prediction-section {
+        background: linear-gradient(
+          135deg,
+          var(--glass-bg) 0%,
+          rgba(255, 255, 255, 0.1) 100%
+        );
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 25px;
+        padding: 3rem;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        animation: slideInFromRight 1s ease-out 0.9s both;
+        margin-bottom: 3rem;
+      }
+
+      body.dark .prediction-section {
+        background: linear-gradient(
+          135deg,
+          var(--dark-glass-bg) 0%,
+          rgba(0, 0, 0, 0.2) 100%
+        );
+        border-color: var(--dark-glass-border);
+      }
+
+      .prediction-section h2 {
+        text-align: center;
+        font-size: 2.5rem;
+        color: var(--primary-burgundy);
+        margin-bottom: 1rem;
+      }
+
+      body.dark .prediction-section h2 {
+        color: var(--secondary-gold);
+      }
+
+      .prediction-subtitle {
+        text-align: center;
+        font-size: 1.2rem;
+        color: var(--medium-gray);
+        margin-bottom: 3rem;
+      }
+
+      body.dark .prediction-subtitle {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .prediction-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: start;
+      }
+
+      .prediction-form {
+        display: grid;
+        gap: 2rem;
+      }
+
+      .form-group {
+        position: relative;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--primary-burgundy);
+        margin-bottom: 0.8rem;
+        text-align: center;
+      }
+
+      body.dark .form-group label {
+        color: var(--secondary-gold);
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 1.2rem;
+        border: 2px solid rgba(128, 0, 32, 0.2);
+        border-radius: 15px;
+        font-size: 1.1rem;
+        background: rgba(255, 255, 255, 0.8);
+        transition: all 0.3s ease;
+        max-width: 200px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      body.dark .form-group input {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: white;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: var(--primary-burgundy);
+        box-shadow: 0 0 0 4px rgba(128, 0, 32, 0.1);
+        transform: scale(1.02);
+      }
+
+      .predict-btn {
+        background: linear-gradient(
+          135deg,
+          var(--primary-burgundy) 0%,
+          var(--wine-red) 100%
+        );
+        color: white;
+        border: none;
+        padding: 1.5rem 2rem;
+        border-radius: 15px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 8px 25px rgba(128, 0, 32, 0.3);
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .predict-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(128, 0, 32, 0.4);
+      }
+
+      .predict-btn:active {
+        transform: translateY(-1px);
+      }
+
+      .result-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+        border: 3px dashed rgba(128, 0, 32, 0.3);
+        border-radius: 20px;
+        background: linear-gradient(
+          135deg,
+          rgba(128, 0, 32, 0.05) 0%,
+          rgba(212, 175, 55, 0.05) 100%
+        );
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      body.dark .result-area {
+        border-color: rgba(255, 255, 255, 0.3);
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.05) 0%,
+          rgba(212, 175, 55, 0.1) 100%
+        );
+      }
+
+      .result-area.has-result {
+        border-style: solid;
+        border-color: var(--secondary-gold);
+        background: linear-gradient(
+          135deg,
+          rgba(212, 175, 55, 0.1) 0%,
+          rgba(128, 0, 32, 0.1) 100%
+        );
+        box-shadow: 0 8px 30px rgba(212, 175, 55, 0.2);
+      }
+
+      .wine-icon-large {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+        animation: float 3s ease-in-out infinite;
+      }
+
+      .result-text {
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+
+      .confidence-text {
+        font-size: 1.2rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .result-description {
+        text-align: center;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        backdrop-filter: blur(5px);
+        max-width: 300px;
+      }
+
+      .premium-result {
+        color: var(--secondary-gold);
+      }
+
+      .common-result {
+        color: var(--wine-red);
+      }
+
+      .theme-toggle {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: linear-gradient(
+          135deg,
+          var(--primary-burgundy) 0%,
+          var(--secondary-gold) 100%
+        );
+        color: white;
+        border: none;
+        font-size: 2rem;
+        cursor: pointer;
+        box-shadow: 0 8px 25px rgba(128, 0, 32, 0.3);
+        transition: all 0.3s ease;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .theme-toggle:hover {
+        transform: scale(1.1) rotate(180deg);
+        box-shadow: 0 12px 35px rgba(128, 0, 32, 0.4);
+      }
+
+      .conclusion-section {
+        background: linear-gradient(
+          135deg,
+          var(--primary-burgundy) 0%,
+          var(--wine-red) 50%,
+          var(--accent-purple) 100%
+        );
+        color: white;
+        padding: 4rem;
+        border-radius: 25px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        animation: fadeInScale 1s ease-out 1.2s both;
+      }
+
+      .conclusion-section::before {
+        content: "🏆";
+        position: absolute;
+        font-size: 15rem;
+        opacity: 0.1;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        animation: float 8s ease-in-out infinite;
+      }
+
+      .glossary-section {
+        background: linear-gradient(
+          135deg,
+          var(--glass-bg) 0%,
+          rgba(255, 255, 255, 0.1) 100%
+        );
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 25px;
+        padding: 3rem;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        animation: slideInFromRight 1s ease-out 1s both;
+        margin-bottom: 3rem;
+        text-align: center;
+      }
+
+      body.dark .glossary-section {
+        background: linear-gradient(
+          135deg,
+          var(--dark-glass-bg) 0%,
+          rgba(0, 0, 0, 0.2) 100%
+        );
+        border-color: var(--dark-glass-border);
+      }
+
+      .glossary-section h2 {
+        font-size: 2.5rem;
+        color: var(--primary-burgundy);
+        margin-bottom: 2rem;
+      }
+
+      body.dark .glossary-section h2 {
+        color: var(--secondary-gold);
+      }
+
+      .glossary-item {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        backdrop-filter: blur(5px);
+      }
+
+      body.dark .glossary-item {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .glossary-item h3 {
+        font-size: 1.5rem;
+        color: var(--primary-burgundy);
+        margin-bottom: 1rem;
+      }
+
+      body.dark .glossary-item h3 {
+        color: var(--secondary-gold);
+      }
+
+      .glossary-item p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: var(--medium-gray);
+      }
+
+      body.dark .glossary-item p {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      @media (max-width: 968px) {
+        .chart-content {
+          grid-template-columns: 1fr;
+        }
+
+        .chart-info {
+          order: 2;
+        }
+
+        .chart-image {
+          order: 1;
+          min-height: 300px;
+        }
+
+        .prediction-grid {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+
+        .header h1 {
+          font-size: 2.5rem;
+        }
+
+        .section-title {
+          font-size: 2rem;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          padding: 1rem;
+        }
+
+        .header {
+          padding: 2rem 1rem;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .intro-section,
+        .prediction-section,
+        .glossary-section {
+          padding: 2rem;
+        }
+
+        .chart-info {
+          padding: 2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+
+    <header class="header">
+      <h1>Análisis Premium del Vino</h1>
+    </header>
+
+    <div class="container">
+      <!-- Introducción -->
+      <section class="intro-section glass-card">
+        <h2>🍇 Visión del Proyecto</h2>
+        <p>
+          En el fascinante mundo de la enología, cada botella cuenta una
+          historia única. Este dashboard representa la convergencia entre la
+          tradición vinícola y la tecnología moderna, utilizando algoritmos
+          avanzados de Machine Learning para descifrar los secretos que
+          determinan la calidad excepcional de un vino. A través del análisis de
+          factores críticos como precio, popularidad, cuerpo y acidez, nuestro
+          modelo de Árboles de Decisión alcanza una precisión extraordinaria del
+          92.68%, ofreciendo insights valiosos para productores, sommeliers y
+          amantes del vino que buscan comprender la complejidad detrás de cada
+          copa.
+        </p>
+      </section>
+
+      <!-- Sección de gráficos -->
+      <section class="charts-section">
+        <h2 class="section-title">📊 Análisis Visual Avanzado</h2>
+
+        <!-- Gráfico 1: Árbol de Decisión -->
+        <div class="chart-card">
+          <div class="chart-content">
+            <div class="chart-info">
+              <h3>🌳 Árbol de Decisión</h3>
+              <div class="accuracy-badge">Precisión: 92.7%</div>
+              <p>
+                Nuestro modelo de árbol de decisión revela las reglas
+                fundamentales que gobiernan la clasificación de vinos premium.
+                El algoritmo identifica patrones jerárquicos donde el
+                <strong>precio</strong> emerge como el factor decisivo
+                principal, seguido por el <strong>número de reseñas</strong>,
+                creando un mapa de decisiones transparente y interpretable.
+              </p>
+              <div class="insight-box">
+                <strong>Insight Clave:</strong> Los nodos superiores del árbol
+                capturan las decisiones más críticas, demostrando que la
+                percepción de calidad está fuertemente correlacionada con el
+                valor económico y la validación social del producto.
+              </div>
+            </div>
+            <div class="chart-image">
+              <img
+                src="{{ url_for('static', filename='arbol_decision_vinos.png') }}"
+                alt="Árbol de Decisión Vinos"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráfico 2: Distribución de Predicciones -->
+        <div class="chart-card">
+          <div class="chart-content">
+            <div class="chart-image">
+              <img
+                src="{{ url_for('static', filename='distribucion_predicciones.png') }}"
+                alt="Distribución de Predicciones"
+              />
+            </div>
+            <div class="chart-info">
+              <h3>📈 Distribución de Predicciones</h3>
+              <div class="accuracy-badge">Precisión: 92.68%</div>
+              <p>
+                Esta visualización ilustra la distribución equilibrada de
+                nuestras predicciones, categorizando los vinos en dos segmentos
+                distintivos: <em>Común</em> y <em>Premium</em>. La excepcional
+                precisión del modelo valida su capacidad para discriminar entre
+                diferentes niveles de calidad con una confiabilidad notable.
+              </p>
+              <div class="insight-box">
+                <strong>Descubrimiento:</strong> El modelo muestra una
+                distribución natural que refleja la realidad del mercado
+                vinícola, donde la mayoría de los vinos se concentran en el
+                segmento común, mientras que los premium representan una
+                categoría selecta y distinguida.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Predictor -->
+      <section class="prediction-section">
+        <h2>🔮 Predictor Inteligente de Calidad</h2>
+        <p class="prediction-subtitle">
+          Ingresa las características específicas del vino para obtener una
+          evaluación instantánea y precisa
+        </p>
+
+        <div class="prediction-grid">
+          <div class="prediction-form">
+            <form id="predictionForm">
+              <div class="form-group">
+                <label>💰 Precio ($)</label>
+                <input
+                  type="number"
+                  name="price"
+                  step="0.01"
+                  required
+                  placeholder="ej: 45.90"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>📝 Número de Reseñas</label>
+                <input
+                  type="number"
+                  name="num_reviews"
+                  step="1"
+                  required
+                  placeholder="ej: 280"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>🍷 Cuerpo (1-5)</label>
+                <input
+                  type="number"
+                  name="body"
+                  step="0.01"
+                  min="1"
+                  max="5"
+                  required
+                  placeholder="ej: 4.1"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>🍋 Acidez (1-5)</label>
+                <input
+                  type="number"
+                  name="acidity"
+                  step="0.01"
+                  min="1"
+                  max="5"
+                  required
+                  placeholder="ej: 3.2"
+                />
+              </div>
+
+              <button type="submit" class="predict-btn">
+                🔮 Analizar Vino
+              </button>
+            </form>
+          </div>
+
+          <div class="result-area" id="resultArea">
+            <div class="wine-icon-large">🍷</div>
+            <div class="result-text" style="opacity: 0.6; font-size: 1.2rem">
+              Introduce las características del vino para revelar su categoría
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Glosario -->
+      <section class="glossary-section">
+        <h2>📖 Glosario de Clasificaciones</h2>
+        <div class="glossary-item">
+          <h3>🍷 Categoría Común</h3>
+          <p>
+            Los vinos clasificados como "Común" se encuentran en un rango de
+            precio entre $0 y $50, con menos de 500 reseñas, un cuerpo entre 1 y
+            3.5, y una acidez entre 1 y 3. Esta categoría representa vinos de
+            calidad estándar, ideales para consumo diario, donde factores como
+            el precio bajo y la accesibilidad predominan. El modelo los
+            identifica como opciones confiables pero no excepcionales,
+            reflejando su posición en el mercado masivo.
+          </p>
+        </div>
+        <div class="glossary-item">
+          <h3>🏆 Categoría Premium</h3>
+          <p>
+            Los vinos "Premium" superan los $50, cuentan con más de 500 reseñas,
+            un cuerpo superior a 3.5, y una acidez entre 3 y 5. Esta categoría
+            incluye vinos de alta calidad, valorados por su prestigio y
+            complejidad, aptos para ocasiones especiales. La clasificación se
+            basa en la correlación entre alto precio, validación social
+            (reseñas) y características organolépticas superiores, destacando su
+            exclusividad en el mercado.
+          </p>
+        </div>
+      </section>
+
+      <!-- Conclusiones -->
+      <section class="conclusion-section">
+        <h2>🏆 Conclusiones del Análisis</h2>
+        <p>
+          Nuestro análisis revela que la calidad percibida del vino está
+          intrínsecamente ligada a factores económicos y sociales. El
+          <strong>precio</strong> y el
+          <strong>número de reseñas</strong> emergen como predictores
+          dominantes, sugiriendo que la valoración del vino trasciende las
+          características organolépticas para incorporar dimensiones de
+          prestigio y validación comunitaria. Con una precisión del
+          <strong>92.68%</strong>, este modelo constituye una herramienta
+          revolucionaria para la industria vinícola, proporcionando insights que
+          pueden transformar estrategias de marketing, pricing y desarrollo de
+          productos en el competitivo mercado del vino premium.
+        </p>
+      </section>
+    </div>
+
+    <script>
+      // Animaciones y interacciones
+      document.addEventListener("DOMContentLoaded", function () {
+        // Intersection Observer para animaciones
+        const observerOptions = {
+          threshold: 0.1,
+          rootMargin: "0px 0px -50px 0px",
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.style.opacity = "1";
+              entry.target.style.transform =
+                "translateY(0) translateX(0) scale(1)";
+            }
+          });
+        }, observerOptions);
+
+        // Observar elementos animados
+        document
+          .querySelectorAll('[class*="animate"], .glass-card, .chart-card')
+          .forEach((el) => {
+            el.style.opacity = "0";
+            observer.observe(el);
+          });
+      });
+
+      function toggleTheme() {
+        document.body.classList.toggle("dark");
+        const btn = document.querySelector(".theme-toggle");
+        btn.textContent = document.body.classList.contains("dark")
+          ? "☀️"
+          : "🌙";
+
+        // Guardar preferencia (aunque no podemos usar localStorage)
+        const isDark = document.body.classList.contains("dark");
+        document.documentElement.style.setProperty(
+          "--theme-preference",
+          isDark ? "dark" : "light"
+        );
+      }
+
+      // Predicción con animaciones mejoradas
+      document
+        .getElementById("predictionForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          // Animación de carga mejorada
+          const resultArea = document.getElementById("resultArea");
+          resultArea.innerHTML = `
+        <div class="wine-icon-large" style="animation: pulse 1s ease-in-out infinite; color: var(--secondary-gold);">⏳</div>
+        <div class="result-text" style="color: var(--primary-burgundy);">Analizando perfil del vino...</div>
+        <div class="confidence-text" style="opacity: 0.7;">Procesando datos con IA avanzada</div>
+      `;
+
+          const formData = new FormData(e.target);
+          const data = {
+            price: parseFloat(formData.get("price")),
+            num_reviews: parseInt(formData.get("num_reviews")),
+            body: parseFloat(formData.get("body")),
+            acidity: parseFloat(formData.get("acidity")),
+          };
+
+          try {
+            const response = await fetch("http://localhost:5000/api/predict", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+
+            // Animación de resultado con delay
+            setTimeout(() => {
+              if (response.ok) {
+                const isPremium = result.result
+                  .toLowerCase()
+                  .includes("premium");
+                const icon = isPremium ? "🏆" : "🍷";
+                const resultClass = isPremium
+                  ? "premium-result"
+                  : "common-result";
+                const bgGradient = isPremium
+                  ? "linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(128, 0, 32, 0.1) 100%)"
+                  : "linear-gradient(135deg, rgba(196, 30, 58, 0.1) 0%, rgba(128, 0, 32, 0.05) 100%)";
+
+                resultArea.className = "result-area has-result";
+                resultArea.style.background = bgGradient;
+                resultArea.innerHTML = `
+              <div class="wine-icon-large" style="animation: float 3s ease-in-out infinite; color: ${
+                isPremium ? "var(--secondary-gold)" : "var(--wine-red)"
+              };">${icon}</div>
+              <div class="result-text ${resultClass}" style="font-size: 1.8rem; margin-bottom: 1rem;">
+                ${result.result}
+              </div>
+              <div class="confidence-text" style="font-size: 1.3rem; margin-bottom: 2rem; color: var(--medium-gray);">
+                Confianza: ${result.confidence}
+              </div>
+              <div class="result-description">
+                <div style="font-size: 1.1rem; margin-bottom: 1rem;">
+                  ${
+                    isPremium
+                      ? "🌟 <strong>Clasificación Premium</strong>"
+                      : "👍 <strong>Clasificación Común</strong>"
+                  }
+                </div>
+                <div style="font-size: 0.95rem; line-height: 1.5; opacity: 0.9;">
+                  ${
+                    isPremium
+                      ? "Este vino presenta características excepcionales que lo posicionan en el segmento premium del mercado. Ideal para ocasiones especiales y coleccionistas exigentes."
+                      : "Un vino con características sólidas y confiables, perfecto para el disfrute cotidiano y momentos casuales. Excelente relación calidad-precio."
+                  }
+                </div>
+              </div>
+            `;
+
+                // Efecto de celebración para vinos premium
+                if (isPremium) {
+                  createCelebrationEffect();
+                }
+              } else {
+                resultArea.innerHTML = `
+              <div class="wine-icon-large" style="color: #dc3545;">❌</div>
+              <div class="result-text" style="color: #dc3545; font-size: 1.5rem;">
+                Error en la predicción
+              </div>
+              <div class="confidence-text" style="color: var(--medium-gray);">
+                ${result.error || "Error desconocido"}
+              </div>
+              <div class="result-description">
+                <small>Por favor, verifica los datos ingresados e intenta nuevamente.</small>
+              </div>
+            `;
+              }
+            }, 2000);
+          } catch (error) {
+            setTimeout(() => {
+              resultArea.innerHTML = `
+            <div class="wine-icon-large" style="color: #fd7e14;">⚠️</div>
+            <div class="result-text" style="color: #fd7e14; font-size: 1.5rem;">
+              Error de Conexión
+            </div>
+            <div class="confidence-text" style="color: var(--medium-gray);">
+              No se pudo conectar con el servidor de predicciones
+            </div>
+            <div class="result-description">
+              <small>Verifica que el servidor esté ejecutándose en el puerto 5000</small>
+            </div>
+          `;
+            }, 2000);
+          }
+        });
+
+      // Función para efecto de celebración
+      function createCelebrationEffect() {
+        const colors = ["#d4af37", "#ffd700", "#ffed4e", "#f59e0b"];
+        const emojis = ["✨", "🎉", "🏆", "⭐"];
+
+        for (let i = 0; i < 20; i++) {
+          setTimeout(() => {
+            const particle = document.createElement("div");
+            particle.style.position = "fixed";
+            particle.style.left = Math.random() * window.innerWidth + "px";
+            particle.style.top = "0px";
+            particle.style.fontSize = "2rem";
+            particle.style.pointerEvents = "none";
+            particle.style.zIndex = "9999";
+            particle.style.animation = "fall 3s linear forwards";
+            particle.textContent =
+              emojis[Math.floor(Math.random() * emojis.length)];
+
+            document.body.appendChild(particle);
+
+            setTimeout(() => {
+              particle.remove();
+            }, 3000);
+          }, i * 100);
+        }
+      }
+
+      // Agregar estilos para la animación de caída
+      const style = document.createElement("style");
+      style.textContent = `
+      @keyframes fall {
+        to {
+          transform: translateY(100vh) rotate(360deg);
+          opacity: 0;
+        }
+      }
+      
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+      }
+    `;
+      document.head.appendChild(style);
+
+      // Efectos de hover mejorados para las tarjetas
+      document.querySelectorAll(".chart-card").forEach((card) => {
+        card.addEventListener("mouseenter", function () {
+          this.style.transform = "translateY(-12px) scale(1.02)";
+          this.style.transition =
+            "all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+        });
+
+        card.addEventListener("mouseleave", function () {
+          this.style.transform = "translateY(0) scale(1)";
+        });
+      });
+
+      // Efecto parallax suave para el header
+      window.addEventListener("scroll", () => {
+        const scrolled = window.pageYOffset;
+        const header = document.querySelector(".header");
+        if (header) {
+          header.style.transform = `translateY(${scrolled * 0.5}px)`;
+        }
+      });
+
+      // Validación mejorada del formulario
+      document.querySelectorAll("#predictionForm input").forEach((input) => {
+        input.addEventListener("input", function () {
+          const value = parseFloat(this.value);
+          const name = this.name;
+
+          if (name === "price" && value < 0) {
+            this.setCustomValidity("El precio debe ser positivo");
+          } else if (name === "num_reviews" && value < 0) {
+            this.setCustomValidity("El número de reseñas debe ser positivo");
+          } else if (
+            (name === "body" || name === "acidity") &&
+            (value < 1 || value > 5)
+          ) {
+            this.setCustomValidity("El valor debe estar entre 1 y 5");
+          } else {
+            this.setCustomValidity("");
+          }
+        });
+
+        input.addEventListener("blur", function () {
+          if (this.checkValidity()) {
+            this.style.borderColor = "var(--success-green)";
+            this.style.boxShadow = "0 0 0 3px rgba(40, 167, 69, 0.1)";
+          } else {
+            this.style.borderColor = "#dc3545";
+            this.style.boxShadow = "0 0 0 3px rgba(220, 53, 69, 0.1)";
+          }
+        });
+      });
+
+      // Función para resetear el área de resultados
+      function resetResultArea() {
+        const resultArea = document.getElementById("resultArea");
+        resultArea.className = "result-area";
+        resultArea.style.background = "";
+        resultArea.innerHTML = `
+        <div class="wine-icon-large">🍷</div>
+        <div class="result-text" style="opacity: 0.6; font-size: 1.2rem;">
+          Introduce las características del vino para revelar su categoría
+        </div>
+      `;
+      }
+
+      document
+        .getElementById("predictionForm")
+        .addEventListener("input", resetResultArea);
+    </script>
+  </body>
+</html>
