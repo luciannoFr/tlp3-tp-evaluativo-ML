@@ -54,7 +54,8 @@ def metrics():
         'model': 'Decision Tree Classifier',
         'features': ['price', 'num_reviews', 'body', 'acidity'],
         'target': 'calidad_alta (Rating >= 4.5)',
-        'status': 'active' if modelo else 'inactive'
+        'status': 'active' if modelo else 'inactive',
+          'accuracy': 0.9268
     })
 
 if __name__ == '__main__':
